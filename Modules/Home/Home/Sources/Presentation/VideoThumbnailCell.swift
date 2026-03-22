@@ -69,12 +69,6 @@ final class VideoThumbnailCell: UICollectionViewCell {
 
     func configure(with video: Video) {
         thumbnailImageView.loadImage(from: video.image)
-        durationLabel.text = " \(formatDuration(video.duration)) "
-    }
-
-    private func formatDuration(_ seconds: Int) -> String {
-        let minutes = seconds / 60
-        let secs = seconds % 60
-        return String(format: "%d:%02d", minutes, secs)
+        durationLabel.text = " \(video.duration.formattedDuration) "
     }
 }

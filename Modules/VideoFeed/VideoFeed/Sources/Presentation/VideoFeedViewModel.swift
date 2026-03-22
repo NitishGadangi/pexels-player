@@ -4,6 +4,11 @@ import SharedModelsInterface
 
 protocol VideoFeedNavigationDelegate: AnyObject {
     func videoFeedDidRequestBack()
+    func videoFeedDidRequestQualitySheet(
+        videoFiles: [VideoFile],
+        currentQuality: VideoQuality,
+        onSelect: @escaping (VideoQuality) -> Void
+    )
 }
 
 final class VideoFeedViewModel {
@@ -37,21 +42,30 @@ final class VideoFeedViewModel {
         }
     }
 
-    let action = PassthroughSubject<Action, Never>()
-    let state = CurrentValueSubject<State, Never>(.idle)
+    let actionHandler = PassthroughSubject<Action, Never>()
+    private let state = CurrentValueSubject<State, Never>(.idle)
+    var statePublisher: AnyPublisher<State, Never> { state.eraseToAnyPublisher() }
     let isMuted = CurrentValueSubject<Bool, Never>(true)
     let playbackProgress = CurrentValueSubject<Double, Never>(0.0)
-    let showQualitySheet = PassthroughSubject<([VideoFile], VideoQuality), Never>()
     let autoAdvance = PassthroughSubject<Int, Never>()
     let prepareVideo = PassthroughSubject<(Video, Int), Never>()
+    let reloadData = PassthroughSubject<Void, Never>()
 
     weak var navigationDelegate: VideoFeedNavigationDelegate?
 
-    let paginationManager: VideoPaginationManagerProtocol
     let playerManager: VideoPlayerManager
     let startIndex: Int
     private(set) var currentIndex: Int
+    private let paginationManager: VideoPaginationManagerProtocol
     private var cancellables = Set<AnyCancellable>()
+
+    var numberOfItems: Int { paginationManager.videos.count }
+
+    func video(at index: Int) -> Video? {
+        let videos = paginationManager.videos
+        guard index < videos.count else { return nil }
+        return videos[index]
+    }
 
     init(
         paginationManager: VideoPaginationManagerProtocol,
@@ -64,11 +78,21 @@ final class VideoFeedViewModel {
         self.currentIndex = startIndex
         bindActions()
         bindPlayerState()
+        bindVideos()
     }
 
     private func bindActions() {
-        action
+        actionHandler
             .sink { [weak self] action in self?.handleAction(action) }
+            .store(in: &cancellables)
+    }
+
+    private func bindVideos() {
+        paginationManager.videosPublisher
+            .sink { [weak self] videos in
+                guard let self, !videos.isEmpty else { return }
+                self.reloadData.send()
+            }
             .store(in: &cancellables)
     }
 
@@ -90,7 +114,7 @@ final class VideoFeedViewModel {
                     self.state.send(.error(msg, index: index))
                 case .finished(let index):
                     let nextIndex = index + 1
-                    if nextIndex < self.paginationManager.videos.count {
+                    if nextIndex < self.numberOfItems {
                         self.autoAdvance.send(nextIndex)
                     }
                 }
@@ -106,7 +130,6 @@ final class VideoFeedViewModel {
         switch action {
         case .viewDidLoad:
             currentIndex = startIndex
-            playCurrentVideo()
 
         case .didScrollTo(let index):
             currentIndex = index
@@ -128,13 +151,17 @@ final class VideoFeedViewModel {
             isMuted.send(playerManager.isMuted)
 
         case .tapQuality:
-            let videos = paginationManager.videos
-            guard currentIndex < videos.count else { return }
-            let video = videos[currentIndex]
-            showQualitySheet.send((video.videoFiles, playerManager.qualityService.currentQuality))
+            guard let video = video(at: currentIndex) else { return }
+            navigationDelegate?.videoFeedDidRequestQualitySheet(
+                videoFiles: video.videoFiles,
+                currentQuality: playerManager.qualityService.currentQuality
+            ) { [weak self] selectedQuality in
+                self?.actionHandler.send(.selectQuality(selectedQuality))
+            }
 
         case .selectQuality(let quality):
             playerManager.qualityService.currentQuality = quality
+            playCurrentVideo()
 
         case .backTapped:
             playerManager.pauseAll()
@@ -142,22 +169,19 @@ final class VideoFeedViewModel {
 
         case .didDismissError:
             let nextIndex = currentIndex + 1
-            if nextIndex < paginationManager.videos.count {
+            if nextIndex < numberOfItems {
                 autoAdvance.send(nextIndex)
             }
         }
     }
 
     private func playCurrentVideo() {
-        let videos = paginationManager.videos
-        guard currentIndex < videos.count else { return }
-        let video = videos[currentIndex]
+        guard let video = video(at: currentIndex) else { return }
         prepareVideo.send((video, currentIndex))
     }
 
     private func checkPagination() {
-        let videos = paginationManager.videos
-        if currentIndex >= videos.count - 5, paginationManager.hasMorePages, !paginationManager.isLoading {
+        if currentIndex >= numberOfItems - 5, paginationManager.hasMorePages, !paginationManager.isLoading {
             paginationManager.loadNextPage()
                 .sink(receiveCompletion: { _ in }, receiveValue: { })
                 .store(in: &cancellables)

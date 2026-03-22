@@ -9,7 +9,6 @@ protocol HomeViewModelNavigationDelegate: AnyObject {
 final class HomeViewModel {
     enum Action {
         case viewDidLoad
-        case pullToRefresh
         case loadMore
         case didSelectVideo(index: Int)
     }
@@ -17,31 +16,26 @@ final class HomeViewModel {
     enum State: Equatable {
         case idle
         case loading
-        case loaded([Video])
+        case loaded
         case error(String)
-
-        static func == (lhs: State, rhs: State) -> Bool {
-            switch (lhs, rhs) {
-            case (.idle, .idle), (.loading, .loading):
-                return true
-            case (.loaded(let a), .loaded(let b)):
-                return a == b
-            case (.error(let a), .error(let b)):
-                return a == b
-            default:
-                return false
-            }
-        }
     }
 
-    let action = PassthroughSubject<Action, Never>()
-    private(set) var state = CurrentValueSubject<State, Never>(.idle)
+    let actionHandler = PassthroughSubject<Action, Never>()
+    private let state = CurrentValueSubject<State, Never>(.idle)
     var statePublisher: AnyPublisher<State, Never> { state.eraseToAnyPublisher() }
 
     weak var navigationDelegate: HomeViewModelNavigationDelegate?
 
     private let paginationManager: VideoPaginationManagerProtocol
     private var cancellables = Set<AnyCancellable>()
+
+    var numberOfItems: Int { paginationManager.videos.count }
+
+    func video(at index: Int) -> Video? {
+        let videos = paginationManager.videos
+        guard index < videos.count else { return nil }
+        return videos[index]
+    }
 
     init(paginationManager: VideoPaginationManagerProtocol) {
         self.paginationManager = paginationManager
@@ -50,7 +44,7 @@ final class HomeViewModel {
     }
 
     private func bindActions() {
-        action
+        actionHandler
             .sink { [weak self] action in self?.handleAction(action) }
             .store(in: &cancellables)
     }
@@ -58,10 +52,9 @@ final class HomeViewModel {
     private func bindPaginationManager() {
         paginationManager.videosPublisher
             .dropFirst()
-            .receive(on: DispatchQueue.main)
             .sink { [weak self] videos in
                 guard let self, !videos.isEmpty else { return }
-                self.state.send(.loaded(videos))
+                self.state.send(.loaded)
             }
             .store(in: &cancellables)
     }
@@ -70,8 +63,6 @@ final class HomeViewModel {
         switch action {
         case .viewDidLoad:
             loadInitial()
-        case .pullToRefresh:
-            refresh()
         case .loadMore:
             loadMore()
         case .didSelectVideo(let index):
@@ -82,21 +73,6 @@ final class HomeViewModel {
     private func loadInitial() {
         state.send(.loading)
         paginationManager.loadNextPage()
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { [weak self] completion in
-                    if case .failure(let error) = completion {
-                        self?.state.send(.error(error.localizedDescription))
-                    }
-                },
-                receiveValue: { _ in }
-            )
-            .store(in: &cancellables)
-    }
-
-    private func refresh() {
-        paginationManager.refresh()
-            .receive(on: DispatchQueue.main)
             .sink(
                 receiveCompletion: { [weak self] completion in
                     if case .failure(let error) = completion {
@@ -111,7 +87,6 @@ final class HomeViewModel {
     private func loadMore() {
         guard !paginationManager.isLoading else { return }
         paginationManager.loadNextPage()
-            .receive(on: DispatchQueue.main)
             .sink(
                 receiveCompletion: { [weak self] completion in
                     if case .failure(let error) = completion {

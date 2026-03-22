@@ -26,13 +26,13 @@ final class HomeViewModelTests: XCTestCase {
             }
             .store(in: &cancellables)
 
-        sut.action.send(.viewDidLoad)
+        sut.actionHandler.send(.viewDidLoad)
         waitForExpectations(timeout: 2)
     }
 
     func testDidSelectVideoCallsDelegate() {
         let (sut, _, navDelegate) = makeSUT()
-        sut.action.send(.didSelectVideo(index: 3))
+        sut.actionHandler.send(.didSelectVideo(index: 3))
 
         XCTAssertEqual(navDelegate.selectedIndices, [3])
     }
@@ -49,14 +49,15 @@ final class HomeViewModelTests: XCTestCase {
             })
             .first()
             .sink { state in
-                if case .loaded(let loadedVideos) = state {
-                    XCTAssertEqual(loadedVideos.count, 2)
+                if case .loaded = state {
+                    XCTAssertEqual(sut.numberOfItems, 2)
+                    XCTAssertNotNil(sut.video(at: 0))
                     expectation.fulfill()
                 }
             }
             .store(in: &cancellables)
 
-        sut.action.send(.viewDidLoad)
+        sut.actionHandler.send(.viewDidLoad)
         waitForExpectations(timeout: 2)
     }
 
@@ -77,7 +78,7 @@ final class HomeViewModelTests: XCTestCase {
             }
             .store(in: &cancellables)
 
-        sut.action.send(.viewDidLoad)
+        sut.actionHandler.send(.viewDidLoad)
         waitForExpectations(timeout: 2)
     }
 

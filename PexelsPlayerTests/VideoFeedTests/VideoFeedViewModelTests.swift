@@ -13,39 +13,44 @@ final class VideoFeedViewModelTests: XCTestCase {
 
     func testBackTappedCallsDelegate() {
         let (sut, _, navDelegate) = makeSUT()
-        sut.action.send(.backTapped)
+        sut.actionHandler.send(.backTapped)
         XCTAssertTrue(navDelegate.didRequestBack)
     }
 
     func testToggleMuteUpdatesMuteState() {
         let (sut, _, _) = makeSUT()
-        XCTAssertFalse(sut.isMuted.value)
-        sut.action.send(.toggleMute)
         XCTAssertTrue(sut.isMuted.value)
-        sut.action.send(.toggleMute)
+        sut.actionHandler.send(.toggleMute)
         XCTAssertFalse(sut.isMuted.value)
+        sut.actionHandler.send(.toggleMute)
+        XCTAssertTrue(sut.isMuted.value)
     }
 
     func testDidScrollToUpdatesCurrentIndex() {
         let (sut, _, _) = makeSUT()
-        sut.action.send(.didScrollTo(index: 5))
+        sut.actionHandler.send(.didScrollTo(index: 5))
         XCTAssertEqual(sut.currentIndex, 5)
     }
 
-    func testTapQualityEmitsQualitySheet() {
+    func testTapQualityCallsDelegate() {
         let videos = [makeVideo(id: 1)]
+        let (sut, _, navDelegate) = makeSUT(stubbedVideos: videos)
+        sut.actionHandler.send(.tapQuality)
+        XCTAssertTrue(navDelegate.didRequestQualitySheet)
+    }
+
+    func testNumberOfItemsMatchesPaginationManager() {
+        let videos = [makeVideo(id: 1), makeVideo(id: 2)]
         let (sut, _, _) = makeSUT(stubbedVideos: videos)
-        let expectation = expectation(description: "Quality sheet shown")
+        XCTAssertEqual(sut.numberOfItems, 2)
+    }
 
-        sut.showQualitySheet
-            .sink { files, quality in
-                XCTAssertFalse(files.isEmpty)
-                expectation.fulfill()
-            }
-            .store(in: &cancellables)
-
-        sut.action.send(.tapQuality)
-        waitForExpectations(timeout: 2)
+    func testVideoAtIndexReturnsCorrectVideo() {
+        let videos = [makeVideo(id: 10), makeVideo(id: 20)]
+        let (sut, _, _) = makeSUT(stubbedVideos: videos)
+        XCTAssertEqual(sut.video(at: 0)?.id, 10)
+        XCTAssertEqual(sut.video(at: 1)?.id, 20)
+        XCTAssertNil(sut.video(at: 5))
     }
 
     // MARK: - Helpers
@@ -104,8 +109,17 @@ private final class StubPaginationManager: VideoPaginationManagerProtocol {
 
 private final class SpyNavigationDelegate: VideoFeedNavigationDelegate {
     var didRequestBack = false
+    var didRequestQualitySheet = false
 
     func videoFeedDidRequestBack() {
         didRequestBack = true
+    }
+
+    func videoFeedDidRequestQualitySheet(
+        videoFiles: [VideoFile],
+        currentQuality: VideoQuality,
+        onSelect: @escaping (VideoQuality) -> Void
+    ) {
+        didRequestQualitySheet = true
     }
 }

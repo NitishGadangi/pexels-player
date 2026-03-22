@@ -8,16 +8,12 @@ import NetworkLib
 public final class HomeCoordinator: HomeBuildable {
     private let networkService: NetworkServiceProtocol
     private let router: SharedRouterProtocol
-    private var _paginationManager: VideoPaginationManager?
 
-    public var paginationManager: VideoPaginationManagerProtocol {
-        if let existing = _paginationManager { return existing }
+    public private(set) lazy var paginationManager: VideoPaginationManagerProtocol = {
         let repository = VideoRepository(networkService: networkService)
         let useCase = FetchPopularVideosUseCase(repository: repository)
-        let manager = VideoPaginationManager(useCase: useCase)
-        _paginationManager = manager
-        return manager
-    }
+        return VideoPaginationManager(useCase: useCase)
+    }()
 
     public init(networkService: NetworkServiceProtocol, router: SharedRouterProtocol) {
         self.networkService = networkService

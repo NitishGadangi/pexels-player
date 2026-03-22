@@ -6,7 +6,6 @@ import SharedModelsInterface
 final class VideoFeedViewController: UIViewController {
     private let viewModel: VideoFeedViewModel
     private var cancellables = Set<AnyCancellable>()
-    private var videos: [Video] = []
     private var hasScrolledToStart = false
 
     private lazy var collectionView: UICollectionView = {
@@ -55,8 +54,14 @@ final class VideoFeedViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         bindState()
-        bindVideos()
-        viewModel.action.send(.viewDidLoad)
+        viewModel.actionHandler.send(.viewDidLoad)
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if !hasScrolledToStart, viewModel.numberOfItems > 0 {
+            handleReloadData()
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -69,8 +74,6 @@ final class VideoFeedViewController: UIViewController {
         navigationController?.setNavigationBarHidden(false, animated: animated)
         viewModel.playerManager.pauseAll()
     }
-
-    override var prefersStatusBarHidden: Bool { true }
 
     private func setupUI() {
         view.backgroundColor = .black
@@ -87,75 +90,44 @@ final class VideoFeedViewController: UIViewController {
         ])
     }
 
-    private func bindVideos() {
-        viewModel.paginationManager.videosPublisher
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] videos in
-                guard let self else { return }
-                let oldCount = self.videos.count
-                self.videos = videos
-                if oldCount == 0 {
-                    self.collectionView.reloadData()
-                    self.scrollToStart()
-                } else if videos.count > oldCount {
-                    let indexPaths = (oldCount..<videos.count).map { IndexPath(item: $0, section: 0) }
-                    self.collectionView.insertItems(at: indexPaths)
-                }
-            }
-            .store(in: &cancellables)
-    }
+    // MARK: - State Binding
 
     private func bindState() {
-        viewModel.state
+        viewModel.statePublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in self?.render(state) }
+            .store(in: &cancellables)
+
+        viewModel.reloadData
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in self?.handleReloadData() }
             .store(in: &cancellables)
 
         viewModel.isMuted
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isMuted in
-                guard let self else { return }
-                let cell = self.visibleCell()
-                cell?.updateMuteButton(isMuted: isMuted)
+                self?.visibleCell()?.updateMuteButton(isMuted: isMuted)
             }
             .store(in: &cancellables)
 
         viewModel.playbackProgress
             .receive(on: DispatchQueue.main)
             .sink { [weak self] progress in
-                guard let self else { return }
-                let cell = self.visibleCell()
-                cell?.progressBar.progress = Float(progress)
+                self?.visibleCell()?.progressBar.progress = Float(progress)
             }
             .store(in: &cancellables)
 
         viewModel.autoAdvance
             .receive(on: DispatchQueue.main)
             .sink { [weak self] nextIndex in
-                guard let self, nextIndex < self.videos.count else { return }
-                let indexPath = IndexPath(item: nextIndex, section: 0)
-                self.collectionView.scrollToItem(at: indexPath, at: .centeredVertically, animated: true)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                    self.viewModel.action.send(.didScrollTo(index: nextIndex))
-                }
+                self?.handleAutoAdvance(to: nextIndex)
             }
             .store(in: &cancellables)
 
         viewModel.prepareVideo
             .receive(on: DispatchQueue.main)
             .sink { [weak self] video, index in
-                guard let self else { return }
-                let cell = self.cellForVideo(at: index)
-                cell?.showBuffering(true)
-                guard let container = cell?.playerContainerView else { return }
-                self.viewModel.playerManager.prepareAndPlay(video: video, at: index, in: container)
-            }
-            .store(in: &cancellables)
-
-        viewModel.showQualitySheet
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] files, currentQuality in
-                self?.presentQualitySheet(files: files, currentQuality: currentQuality)
+                self?.handlePrepareVideo(video, at: index)
             }
             .store(in: &cancellables)
     }
@@ -165,28 +137,75 @@ final class VideoFeedViewController: UIViewController {
         case .idle:
             break
         case .buffering(let index):
-            let cell = cellForVideo(at: index)
-            cell?.showBuffering(true)
-            cell?.showPaused(false)
+            handleBuffering(at: index)
         case .playing(let index):
-            let cell = cellForVideo(at: index)
-            cell?.showBuffering(false)
-            cell?.showPaused(false)
+            handlePlaying(at: index)
         case .paused:
-            let cell = visibleCell()
-            cell?.showPaused(true)
+            handlePaused()
         case .error(let message, _):
-            showErrorAlert(message: message)
+            handleError(message)
         }
     }
 
+    // MARK: - State Handlers
+
+    private func handleReloadData() {
+        collectionView.reloadData()
+        collectionView.layoutIfNeeded()
+        if !hasScrolledToStart {
+            scrollToStart()
+        }
+    }
+
+    private func handleBuffering(at index: Int) {
+        let cell = cellForVideo(at: index)
+        cell?.showBuffering(true)
+        cell?.showPaused(false)
+    }
+
+    private func handlePlaying(at index: Int) {
+        let cell = cellForVideo(at: index)
+        cell?.showBuffering(false)
+        cell?.showPaused(false)
+    }
+
+    private func handlePaused() {
+        visibleCell()?.showPaused(true)
+    }
+
+    private func handleError(_ message: String) {
+        let alert = UIAlertController(title: "Playback Error", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+            self?.viewModel.actionHandler.send(.didDismissError)
+        })
+        present(alert, animated: true)
+    }
+
+    private func handleAutoAdvance(to nextIndex: Int) {
+        guard nextIndex < viewModel.numberOfItems else { return }
+        let indexPath = IndexPath(item: nextIndex, section: 0)
+        collectionView.scrollToItem(at: indexPath, at: .centeredVertically, animated: true)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            self.viewModel.actionHandler.send(.didScrollTo(index: nextIndex))
+        }
+    }
+
+    private func handlePrepareVideo(_ video: Video, at index: Int) {
+        let cell = cellForVideo(at: index)
+        cell?.showBuffering(true)
+        guard let container = cell?.playerContainerView else { return }
+        viewModel.playerManager.prepareAndPlay(video: video, at: index, in: container)
+    }
+
+    // MARK: - Helpers
+
     private func scrollToStart() {
-        guard !hasScrolledToStart, viewModel.startIndex < videos.count else { return }
+        guard !hasScrolledToStart, viewModel.startIndex < viewModel.numberOfItems else { return }
         hasScrolledToStart = true
         let indexPath = IndexPath(item: viewModel.startIndex, section: 0)
         collectionView.scrollToItem(at: indexPath, at: .centeredVertically, animated: false)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            self.viewModel.action.send(.didScrollTo(index: self.viewModel.startIndex))
+            self.viewModel.actionHandler.send(.didScrollTo(index: self.viewModel.startIndex))
         }
     }
 
@@ -201,62 +220,34 @@ final class VideoFeedViewController: UIViewController {
         return collectionView.cellForItem(at: indexPath) as? VideoFeedCell
     }
 
-    private func showErrorAlert(message: String) {
-        let alert = UIAlertController(title: "Playback Error", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
-            self?.viewModel.action.send(.didDismissError)
-        })
-        present(alert, animated: true)
-    }
-
-    private func presentQualitySheet(files: [VideoFile], currentQuality: VideoQuality) {
-        let vc = QualityBottomSheetViewController(
-            videoFiles: files,
-            currentQuality: currentQuality
-        ) { [weak self] selectedQuality in
-            guard let self else { return }
-            self.viewModel.action.send(.selectQuality(selectedQuality))
-            let cell = self.visibleCell()
-            cell?.qualityButton.setTitle(selectedQuality.displayName, for: .normal)
-            if self.viewModel.currentIndex < self.videos.count {
-                self.viewModel.playerManager.reloadCurrentVideo(
-                    video: self.videos[self.viewModel.currentIndex],
-                    at: self.viewModel.currentIndex,
-                    in: cell?.playerContainerView ?? UIView()
-                )
-            }
-        }
-        if let sheet = vc.sheetPresentationController {
-            sheet.detents = [.medium()]
-            sheet.prefersGrabberVisible = true
-        }
-        present(vc, animated: true)
-    }
-
     @objc private func didTapBack() {
-        viewModel.action.send(.backTapped)
+        viewModel.actionHandler.send(.backTapped)
     }
 }
 
+// MARK: - UICollectionViewDataSource
+
 extension VideoFeedViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        videos.count
+        viewModel.numberOfItems
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: VideoFeedCell.reuseIdentifier,
             for: indexPath
-        ) as? VideoFeedCell else {
+        ) as? VideoFeedCell,
+              let video = viewModel.video(at: indexPath.item) else {
             return UICollectionViewCell()
         }
-        let video = videos[indexPath.item]
         cell.configure(with: video, quality: viewModel.playerManager.qualityService.currentQuality)
         cell.delegate = self
         cell.updateMuteButton(isMuted: viewModel.isMuted.value)
         return cell
     }
 }
+
+// MARK: - UICollectionViewDelegateFlowLayout
 
 extension VideoFeedViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -265,24 +256,31 @@ extension VideoFeedViewController: UICollectionViewDelegateFlowLayout {
 
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         let index = Int(scrollView.contentOffset.y / scrollView.bounds.height)
-        guard index != viewModel.currentIndex, index >= 0, index < videos.count else { return }
-        viewModel.action.send(.didScrollTo(index: index))
+        guard index != viewModel.currentIndex, index >= 0, index < viewModel.numberOfItems else { return }
+        viewModel.actionHandler.send(.didScrollTo(index: index))
     }
 }
 
+// MARK: - VideoFeedCellDelegate
+
 extension VideoFeedViewController: VideoFeedCellDelegate {
     func cellDidTapPlayPause(_ cell: VideoFeedCell) {
-        viewModel.action.send(.togglePlayPause)
+        viewModel.actionHandler.send(.togglePlayPause)
     }
 
     func cellDidTapMute(_ cell: VideoFeedCell) {
-        viewModel.action.send(.toggleMute)
+        viewModel.actionHandler.send(.toggleMute)
     }
 
-    func cellDidTapSave(_ cell: VideoFeedCell) {}
-    func cellDidTapShare(_ cell: VideoFeedCell) {}
+    func cellDidTapSave(_ cell: VideoFeedCell) {
+        //TODO: Calls viewModel.actionHandler when needed
+    }
+
+    func cellDidTapShare(_ cell: VideoFeedCell) {
+        //TODO: Calls viewModel.actionHandler when needed
+    }
 
     func cellDidTapQuality(_ cell: VideoFeedCell) {
-        viewModel.action.send(.tapQuality)
+        viewModel.actionHandler.send(.tapQuality)
     }
 }

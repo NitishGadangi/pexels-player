@@ -6,7 +6,7 @@ import SharedModelsInterface
 final class HomeViewController: BaseViewController {
     private let viewModel: HomeViewModel
     private var cancellables = Set<AnyCancellable>()
-    private var videos: [Video] = []
+    private var isLoadingMore = false
 
     private lazy var collectionView: UICollectionView = {
         let layout = createLayout()
@@ -19,9 +19,6 @@ final class HomeViewController: BaseViewController {
         cv.translatesAutoresizingMaskIntoConstraints = false
         return cv
     }()
-
-    private var isLoadingMore = false
-
 
     init(viewModel: HomeViewModel) {
         self.viewModel = viewModel
@@ -36,7 +33,7 @@ final class HomeViewController: BaseViewController {
         super.viewDidLoad()
         setupUI()
         bindState()
-        viewModel.action.send(.viewDidLoad)
+        viewModel.actionHandler.send(.viewDidLoad)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -77,6 +74,8 @@ final class HomeViewController: BaseViewController {
         return UICollectionViewCompositionalLayout(section: section)
     }
 
+    // MARK: - State Binding
+
     private func bindState() {
         viewModel.statePublisher
             .receive(on: DispatchQueue.main)
@@ -89,75 +88,56 @@ final class HomeViewController: BaseViewController {
         case .idle:
             break
         case .loading:
-            if videos.isEmpty {
-                showLoading(true)
-            }
-        case .loaded(let newVideos):
-            showLoading(false)
-            isLoadingMore = false
-            let oldCount = videos.count
-            videos = newVideos
-            if oldCount == 0 {
-                collectionView.reloadData()
-            } else if newVideos.count > oldCount {
-                let indexPaths = (oldCount..<newVideos.count).map { IndexPath(item: $0, section: 0) }
-                collectionView.performBatchUpdates {
-                    collectionView.insertItems(at: indexPaths)
-                }
-            }
+            handleLoading()
+        case .loaded:
+            handleLoaded()
         case .error(let message):
-            showLoading(false)
-            showErrorAlert(message: message)
+            handleError(message)
         }
     }
 
-    private func showErrorAlert(message: String) {
+    private func handleLoading() {
+        if viewModel.numberOfItems == 0 {
+            showLoading(true)
+        }
+    }
+
+    private func handleLoaded() {
+        showLoading(false)
+        isLoadingMore = false
+        collectionView.reloadData()
+    }
+
+    private func handleError(_ message: String) {
+        showLoading(false)
         let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Retry", style: .default) { [weak self] _ in
-            self?.viewModel.action.send(.viewDidLoad)
+            self?.viewModel.actionHandler.send(.viewDidLoad)
         })
         alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel))
         present(alert, animated: true)
     }
-
 }
+
+// MARK: - UICollectionViewDataSource
 
 extension HomeViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        videos.count
+        viewModel.numberOfItems
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: VideoThumbnailCell.reuseIdentifier,
             for: indexPath
-        ) as? VideoThumbnailCell else {
+        ) as? VideoThumbnailCell,
+              let video = viewModel.video(at: indexPath.item) else {
             return UICollectionViewCell()
         }
-        cell.configure(with: videos[indexPath.item])
+        cell.configure(with: video)
         return cell
     }
-}
 
-extension HomeViewController: UICollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        viewModel.action.send(.didSelectVideo(index: indexPath.item))
-    }
-
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let offsetY = scrollView.contentOffset.y
-        let contentHeight = scrollView.contentSize.height
-        let frameHeight = scrollView.frame.height
-
-        if offsetY > contentHeight - frameHeight - 200, !videos.isEmpty {
-            guard !isLoadingMore else { return }
-            isLoadingMore = true
-            viewModel.action.send(.loadMore)
-        }
-    }
-}
-
-extension HomeViewController {
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         guard kind == UICollectionView.elementKindSectionFooter,
               let footer = collectionView.dequeueReusableSupplementaryView(
@@ -167,10 +147,33 @@ extension HomeViewController {
               ) as? LoadingFooterView else {
             return UICollectionReusableView()
         }
-        footer.setLoading(isLoadingMore && !videos.isEmpty)
+        footer.setLoading(isLoadingMore && viewModel.numberOfItems > 0)
         return footer
     }
 }
+
+// MARK: - UICollectionViewDelegate
+
+extension HomeViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        viewModel.actionHandler.send(.didSelectVideo(index: indexPath.item))
+    }
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let offsetY = scrollView.contentOffset.y
+        let contentHeight = scrollView.contentSize.height
+        let frameHeight = scrollView.frame.height
+
+        guard offsetY > contentHeight - frameHeight - 200,
+              viewModel.numberOfItems > 0,
+              !isLoadingMore else { return }
+
+        isLoadingMore = true
+        viewModel.actionHandler.send(.loadMore)
+    }
+}
+
+// MARK: - LoadingFooterView
 
 private final class LoadingFooterView: UICollectionReusableView {
     static let reuseIdentifier = "LoadingFooterView"

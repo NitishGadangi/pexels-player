@@ -6,6 +6,22 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		5EF208722F7006F700471FED /* CacheLib in Frameworks */ = {isa = PBXBuildFile; productRef = 5EF208712F7006F700471FED /* CacheLib */; };
+		5EF208742F7006F700471FED /* Home in Frameworks */ = {isa = PBXBuildFile; productRef = 5EF208732F7006F700471FED /* Home */; };
+		5EF208762F7006F700471FED /* HomeInterface in Frameworks */ = {isa = PBXBuildFile; productRef = 5EF208752F7006F700471FED /* HomeInterface */; };
+		5EF208782F7006F700471FED /* LoggingLib in Frameworks */ = {isa = PBXBuildFile; productRef = 5EF208772F7006F700471FED /* LoggingLib */; };
+		5EF2087A2F7006F700471FED /* NetworkLib in Frameworks */ = {isa = PBXBuildFile; productRef = 5EF208792F7006F700471FED /* NetworkLib */; };
+		5EF2087C2F7006F700471FED /* SavedItems in Frameworks */ = {isa = PBXBuildFile; productRef = 5EF2087B2F7006F700471FED /* SavedItems */; };
+		5EF2087E2F7006F700471FED /* SavedItemsInterface in Frameworks */ = {isa = PBXBuildFile; productRef = 5EF2087D2F7006F700471FED /* SavedItemsInterface */; };
+		5EF208802F7006F700471FED /* SharedModelsInterface in Frameworks */ = {isa = PBXBuildFile; productRef = 5EF2087F2F7006F700471FED /* SharedModelsInterface */; };
+		5EF208822F7006F700471FED /* SharedRouter in Frameworks */ = {isa = PBXBuildFile; productRef = 5EF208812F7006F700471FED /* SharedRouter */; };
+		5EF208842F7006F700471FED /* SharedRouterInterface in Frameworks */ = {isa = PBXBuildFile; productRef = 5EF208832F7006F700471FED /* SharedRouterInterface */; };
+		5EF208862F7006F700471FED /* UIComponents in Frameworks */ = {isa = PBXBuildFile; productRef = 5EF208852F7006F700471FED /* UIComponents */; };
+		5EF208882F7006F700471FED /* VideoFeed in Frameworks */ = {isa = PBXBuildFile; productRef = 5EF208872F7006F700471FED /* VideoFeed */; };
+		5EF2088A2F7006F700471FED /* VideoFeedInterface in Frameworks */ = {isa = PBXBuildFile; productRef = 5EF208892F7006F700471FED /* VideoFeedInterface */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		5EF208452F6FE75D00471FED /* PexelsPlayer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PexelsPlayer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -29,6 +45,11 @@
 			path = PexelsPlayer;
 			sourceTree = "<group>";
 		};
+		5EF2096E2F70076B00471FED /* Modules */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Modules;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -36,6 +57,19 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5EF208782F7006F700471FED /* LoggingLib in Frameworks */,
+				5EF208802F7006F700471FED /* SharedModelsInterface in Frameworks */,
+				5EF208842F7006F700471FED /* SharedRouterInterface in Frameworks */,
+				5EF2087E2F7006F700471FED /* SavedItemsInterface in Frameworks */,
+				5EF2088A2F7006F700471FED /* VideoFeedInterface in Frameworks */,
+				5EF208722F7006F700471FED /* CacheLib in Frameworks */,
+				5EF208762F7006F700471FED /* HomeInterface in Frameworks */,
+				5EF2087C2F7006F700471FED /* SavedItems in Frameworks */,
+				5EF208862F7006F700471FED /* UIComponents in Frameworks */,
+				5EF208882F7006F700471FED /* VideoFeed in Frameworks */,
+				5EF208822F7006F700471FED /* SharedRouter in Frameworks */,
+				5EF2087A2F7006F700471FED /* NetworkLib in Frameworks */,
+				5EF208742F7006F700471FED /* Home in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -45,6 +79,7 @@
 		5EF2083C2F6FE75D00471FED = {
 			isa = PBXGroup;
 			children = (
+				5EF2096E2F70076B00471FED /* Modules */,
 				5EF208472F6FE75D00471FED /* PexelsPlayer */,
 				5EF208462F6FE75D00471FED /* Products */,
 			);
@@ -75,9 +110,23 @@
 			);
 			fileSystemSynchronizedGroups = (
 				5EF208472F6FE75D00471FED /* PexelsPlayer */,
+				5EF2096E2F70076B00471FED /* Modules */,
 			);
 			name = PexelsPlayer;
 			packageProductDependencies = (
+				5EF208712F7006F700471FED /* CacheLib */,
+				5EF208732F7006F700471FED /* Home */,
+				5EF208752F7006F700471FED /* HomeInterface */,
+				5EF208772F7006F700471FED /* LoggingLib */,
+				5EF208792F7006F700471FED /* NetworkLib */,
+				5EF2087B2F7006F700471FED /* SavedItems */,
+				5EF2087D2F7006F700471FED /* SavedItemsInterface */,
+				5EF2087F2F7006F700471FED /* SharedModelsInterface */,
+				5EF208812F7006F700471FED /* SharedRouter */,
+				5EF208832F7006F700471FED /* SharedRouterInterface */,
+				5EF208852F7006F700471FED /* UIComponents */,
+				5EF208872F7006F700471FED /* VideoFeed */,
+				5EF208892F7006F700471FED /* VideoFeedInterface */,
 			);
 			productName = PexelsPlayer;
 			productReference = 5EF208452F6FE75D00471FED /* PexelsPlayer.app */;
@@ -107,6 +156,9 @@
 			);
 			mainGroup = 5EF2083C2F6FE75D00471FED;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				5EF208702F7006F700471FED /* XCLocalSwiftPackageReference "../pexels-player" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5EF208462F6FE75D00471FED /* Products */;
 			projectDirPath = "";
@@ -345,6 +397,68 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		5EF208702F7006F700471FED /* XCLocalSwiftPackageReference "../pexels-player" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../pexels-player";
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5EF208712F7006F700471FED /* CacheLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CacheLib;
+		};
+		5EF208732F7006F700471FED /* Home */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Home;
+		};
+		5EF208752F7006F700471FED /* HomeInterface */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HomeInterface;
+		};
+		5EF208772F7006F700471FED /* LoggingLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LoggingLib;
+		};
+		5EF208792F7006F700471FED /* NetworkLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NetworkLib;
+		};
+		5EF2087B2F7006F700471FED /* SavedItems */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SavedItems;
+		};
+		5EF2087D2F7006F700471FED /* SavedItemsInterface */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SavedItemsInterface;
+		};
+		5EF2087F2F7006F700471FED /* SharedModelsInterface */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SharedModelsInterface;
+		};
+		5EF208812F7006F700471FED /* SharedRouter */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SharedRouter;
+		};
+		5EF208832F7006F700471FED /* SharedRouterInterface */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SharedRouterInterface;
+		};
+		5EF208852F7006F700471FED /* UIComponents */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = UIComponents;
+		};
+		5EF208872F7006F700471FED /* VideoFeed */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = VideoFeed;
+		};
+		5EF208892F7006F700471FED /* VideoFeedInterface */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = VideoFeedInterface;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5EF2083D2F6FE75D00471FED /* Project object */;
 }

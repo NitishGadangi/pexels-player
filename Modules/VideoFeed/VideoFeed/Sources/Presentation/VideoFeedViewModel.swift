@@ -105,14 +105,19 @@ final class VideoFeedViewModel {
                 case .idle:
                     break
                 case .buffering(let index):
+                    guard index == self.currentIndex else { return }
                     self.state.send(.buffering(index: index))
                 case .playing(let index):
+                    guard index == self.currentIndex else { return }
                     self.state.send(.playing(index: index))
                 case .paused(let index):
+                    guard index == self.currentIndex else { return }
                     self.state.send(.paused(index: index))
                 case .error(let msg, let index):
+                    guard index == self.currentIndex else { return }
                     self.state.send(.error(msg, index: index))
                 case .finished(let index):
+                    guard index == self.currentIndex else { return }
                     let nextIndex = index + 1
                     if nextIndex < self.numberOfItems {
                         self.autoAdvance.send(nextIndex)
@@ -176,6 +181,7 @@ final class VideoFeedViewModel {
     }
 
     private func playCurrentVideo() {
+        playerManager.pauseAll()
         guard let video = video(at: currentIndex) else { return }
         prepareVideo.send((video, currentIndex))
     }

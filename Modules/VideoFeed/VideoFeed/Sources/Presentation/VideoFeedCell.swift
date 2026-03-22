@@ -1,4 +1,5 @@
 import UIKit
+import AVFoundation
 import UIComponents
 import SharedModelsInterface
 
@@ -102,6 +103,9 @@ final class VideoFeedCell: UICollectionViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
+        playerContainerView.layer.sublayers?.forEach { layer in
+            if layer is AVPlayerLayer { layer.removeFromSuperlayer() }
+        }
         previewImageView.cancelLoad()
         previewImageView.image = nil
         previewImageView.isHidden = false

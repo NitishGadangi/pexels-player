@@ -23,6 +23,9 @@ enum PexelsEndpoint: Endpoint {
     }
 
     var headers: [String: String]? {
-        ["Authorization": "YOUR_PEXELS_API_KEY"]
+        // TODO: Make the API key a secret.
+        // Ideally this auth token must be stored in some xcconfig/plist file and keep it away from git tracking
+        // To keep the code easy to run I hardcoding for now. This token would be disabled later.
+        ["Authorization": "e3SY7xHQSFntkEUwmeWAihiT131oYtyHTIOTxagzvdlPBRPMhu3k4Iwv"]
     }
 }

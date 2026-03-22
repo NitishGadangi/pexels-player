@@ -15,8 +15,7 @@ final class AppConfigurator {
 
     private func configureAppearance() {
         let navBarAppearance = UINavigationBarAppearance()
-        navBarAppearance.configureWithOpaqueBackground()
-        navBarAppearance.backgroundColor = AppTheme.navBar
+        navBarAppearance.configureWithDefaultBackground()
         navBarAppearance.titleTextAttributes = [.foregroundColor: AppTheme.primaryText]
         navBarAppearance.largeTitleTextAttributes = [.foregroundColor: AppTheme.primaryText]
         UINavigationBar.appearance().standardAppearance = navBarAppearance

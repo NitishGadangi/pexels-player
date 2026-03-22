@@ -18,8 +18,9 @@ final class VideoPlayerManager {
 
     private let pool: VideoPlayerPool
     let qualityService: QualityPreferenceService
-    private(set) var isMuted = false
+    private(set) var isMuted = true
     private var currentIndex: Int?
+    private weak var currentPlayer: AVPlayer?
     private var timeObserver: Any?
     private var statusObservation: NSKeyValueObservation?
     private var cancellables = Set<AnyCancellable>()
@@ -43,8 +44,10 @@ final class VideoPlayerManager {
 
         cleanupCurrentObservers()
         currentIndex = index
+        progress.send(0.0)
 
         let (player, layer) = pool.player(for: index, currentVisibleIndex: index)
+        currentPlayer = player
         layer.removeFromSuperlayer()
         layer.videoGravity = .resizeAspect
         layer.frame = containerView.bounds
@@ -139,9 +142,9 @@ final class VideoPlayerManager {
         statusObservation?.invalidate()
         statusObservation = nil
         cancellables.removeAll()
-        if let index = currentIndex {
-            let (player, _) = pool.player(for: index, currentVisibleIndex: index)
+        if let player = currentPlayer {
             removeTimeObserver(from: player)
         }
+        currentPlayer = nil
     }
 }

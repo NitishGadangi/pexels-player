@@ -167,12 +167,14 @@ final class VideoFeedViewController: UIViewController {
         case .buffering(let index):
             let cell = cellForVideo(at: index)
             cell?.showBuffering(true)
+            cell?.showPaused(false)
         case .playing(let index):
             let cell = cellForVideo(at: index)
             cell?.showBuffering(false)
+            cell?.showPaused(false)
         case .paused:
             let cell = visibleCell()
-            cell?.showPauseIcon()
+            cell?.showPaused(true)
         case .error(let message, _):
             showErrorAlert(message: message)
         }
@@ -189,7 +191,7 @@ final class VideoFeedViewController: UIViewController {
     }
 
     private func visibleCell() -> VideoFeedCell? {
-        let center = CGPoint(x: collectionView.bounds.midX, y: collectionView.bounds.midY + collectionView.contentOffset.y)
+        let center = CGPoint(x: collectionView.bounds.midX, y: collectionView.bounds.midY)
         guard let indexPath = collectionView.indexPathForItem(at: center) else { return nil }
         return collectionView.cellForItem(at: indexPath) as? VideoFeedCell
     }

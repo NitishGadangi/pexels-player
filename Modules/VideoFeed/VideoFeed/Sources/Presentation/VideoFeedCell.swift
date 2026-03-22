@@ -38,8 +38,8 @@ final class VideoFeedCell: UICollectionViewCell {
         return indicator
     }()
 
-    private let pauseIcon: UIImageView = {
-        let iv = UIImageView(image: UIImage(systemName: "pause.fill"))
+    private let playPauseIcon: UIImageView = {
+        let iv = UIImageView(image: UIImage(systemName: "play.fill"))
         iv.tintColor = .white.withAlphaComponent(0.8)
         iv.contentMode = .scaleAspectFit
         iv.translatesAutoresizingMaskIntoConstraints = false
@@ -106,7 +106,7 @@ final class VideoFeedCell: UICollectionViewCell {
         previewImageView.image = nil
         previewImageView.isHidden = false
         loadingIndicator.stopAnimating()
-        pauseIcon.isHidden = true
+        playPauseIcon.isHidden = true
         progressBar.progress = 0
     }
 
@@ -116,7 +116,7 @@ final class VideoFeedCell: UICollectionViewCell {
         contentView.addSubview(playerContainerView)
         contentView.addSubview(previewImageView)
         contentView.addSubview(loadingIndicator)
-        contentView.addSubview(pauseIcon)
+        contentView.addSubview(playPauseIcon)
         contentView.addSubview(usernameLabel)
         contentView.addSubview(progressBar)
         contentView.addSubview(buttonStack)
@@ -128,10 +128,10 @@ final class VideoFeedCell: UICollectionViewCell {
             loadingIndicator.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             loadingIndicator.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
 
-            pauseIcon.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            pauseIcon.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            pauseIcon.widthAnchor.constraint(equalToConstant: 50),
-            pauseIcon.heightAnchor.constraint(equalToConstant: 50),
+            playPauseIcon.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            playPauseIcon.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            playPauseIcon.widthAnchor.constraint(equalToConstant: 50),
+            playPauseIcon.heightAnchor.constraint(equalToConstant: 50),
 
             usernameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             usernameLabel.bottomAnchor.constraint(equalTo: progressBar.topAnchor, constant: -20),
@@ -182,13 +182,17 @@ final class VideoFeedCell: UICollectionViewCell {
         }
     }
 
-    func showPauseIcon() {
-        pauseIcon.isHidden = false
-        pauseIcon.alpha = 1.0
-        UIView.animate(withDuration: 1.0, delay: 0.3) {
-            self.pauseIcon.alpha = 0
-        } completion: { _ in
-            self.pauseIcon.isHidden = true
+    func showPaused(_ paused: Bool) {
+        playPauseIcon.image = UIImage(systemName: paused ? "play.fill" : "pause.fill")
+        if paused {
+            playPauseIcon.isHidden = false
+            playPauseIcon.alpha = 1.0
+        } else {
+            UIView.animate(withDuration: 0.3) {
+                self.playPauseIcon.alpha = 0
+            } completion: { _ in
+                self.playPauseIcon.isHidden = true
+            }
         }
     }
 

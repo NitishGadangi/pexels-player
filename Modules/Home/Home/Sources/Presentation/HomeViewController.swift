@@ -14,7 +14,6 @@ final class HomeViewController: BaseViewController {
         cv.backgroundColor = AppTheme.background
         cv.dataSource = self
         cv.delegate = self
-        cv.prefetchDataSource = self
         cv.register(VideoThumbnailCell.self, forCellWithReuseIdentifier: VideoThumbnailCell.reuseIdentifier)
         cv.register(LoadingFooterView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: LoadingFooterView.reuseIdentifier)
         cv.translatesAutoresizingMaskIntoConstraints = false
@@ -96,8 +95,16 @@ final class HomeViewController: BaseViewController {
         case .loaded(let newVideos):
             showLoading(false)
             isLoadingMore = false
+            let oldCount = videos.count
             videos = newVideos
-            collectionView.reloadData()
+            if oldCount == 0 {
+                collectionView.reloadData()
+            } else if newVideos.count > oldCount {
+                let indexPaths = (oldCount..<newVideos.count).map { IndexPath(item: $0, section: 0) }
+                collectionView.performBatchUpdates {
+                    collectionView.insertItems(at: indexPaths)
+                }
+            }
         case .error(let message):
             showLoading(false)
             showErrorAlert(message: message)
@@ -136,14 +143,15 @@ extension HomeViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         viewModel.action.send(.didSelectVideo(index: indexPath.item))
     }
-}
 
-extension HomeViewController: UICollectionViewDataSourcePrefetching {
-    func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {
-        let maxIndex = indexPaths.map(\.item).max() ?? 0
-        if maxIndex >= videos.count - 3 {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let offsetY = scrollView.contentOffset.y
+        let contentHeight = scrollView.contentSize.height
+        let frameHeight = scrollView.frame.height
+
+        if offsetY > contentHeight - frameHeight - 200, !videos.isEmpty {
+            guard !isLoadingMore else { return }
             isLoadingMore = true
-            collectionView.reloadData()
             viewModel.action.send(.loadMore)
         }
     }

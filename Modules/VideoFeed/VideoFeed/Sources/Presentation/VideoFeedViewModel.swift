@@ -39,7 +39,7 @@ final class VideoFeedViewModel {
 
     let action = PassthroughSubject<Action, Never>()
     let state = CurrentValueSubject<State, Never>(.idle)
-    let isMuted = CurrentValueSubject<Bool, Never>(false)
+    let isMuted = CurrentValueSubject<Bool, Never>(true)
     let playbackProgress = CurrentValueSubject<Double, Never>(0.0)
     let showQualitySheet = PassthroughSubject<([VideoFile], VideoQuality), Never>()
     let autoAdvance = PassthroughSubject<Int, Never>()

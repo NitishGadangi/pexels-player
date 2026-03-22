@@ -1,19 +1,14 @@
-//
-//  AppConfigurator.swift
-//  PexelsPlayer
-//
-//  Created by Nitish Gadangi on 3/22/26.
-//
-
 import UIKit
 import UIComponents
 
 final class AppConfigurator {
+
     func configure() {
-        configureAppearance()
+        configureNavBar()
+        configureTabBar()
     }
 
-    private func configureAppearance() {
+    private func configureNavBar() {
         let navBarAppearance = UINavigationBarAppearance()
         navBarAppearance.configureWithDefaultBackground()
         navBarAppearance.titleTextAttributes = [.foregroundColor: AppTheme.primaryText]
@@ -21,7 +16,9 @@ final class AppConfigurator {
         UINavigationBar.appearance().standardAppearance = navBarAppearance
         UINavigationBar.appearance().scrollEdgeAppearance = navBarAppearance
         UINavigationBar.appearance().tintColor = AppTheme.primaryText
+    }
 
+    private func configureTabBar() {
         let tabBarAppearance = UITabBarAppearance()
         tabBarAppearance.configureWithOpaqueBackground()
         tabBarAppearance.backgroundColor = AppTheme.tabBar

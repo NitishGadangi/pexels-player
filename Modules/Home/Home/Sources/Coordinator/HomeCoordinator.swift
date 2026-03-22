@@ -7,7 +7,7 @@ import NetworkLib
 
 public final class HomeCoordinator: HomeBuildable {
     private let networkService: NetworkServiceProtocol
-    private let lazyRouter: LazyRouter
+    private let router: SharedRouterProtocol
     private var _paginationManager: VideoPaginationManager?
 
     public var paginationManager: VideoPaginationManagerProtocol {
@@ -19,9 +19,9 @@ public final class HomeCoordinator: HomeBuildable {
         return manager
     }
 
-    public init(networkService: NetworkServiceProtocol, lazyRouter: LazyRouter) {
+    public init(networkService: NetworkServiceProtocol, router: SharedRouterProtocol) {
         self.networkService = networkService
-        self.lazyRouter = lazyRouter
+        self.router = router
     }
 
     public func build() -> UIViewController {
@@ -33,6 +33,6 @@ public final class HomeCoordinator: HomeBuildable {
 
 extension HomeCoordinator: HomeViewModelNavigationDelegate {
     func homeViewModel(_ viewModel: HomeViewModel, didSelectVideoAt index: Int) {
-        lazyRouter.navigate(to: .videoFeed(startIndex: index), style: .push)
+        router.navigate(to: .videoFeed(startIndex: index), style: .push)
     }
 }

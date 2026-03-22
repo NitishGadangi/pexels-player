@@ -24,7 +24,7 @@ final class VideoFeedCell: UICollectionViewCell {
 
     let previewImageView: RemoteImageView = {
         let iv = RemoteImageView()
-        iv.contentMode = .scaleAspectFill
+        iv.contentMode = .scaleAspectFit
         iv.clipsToBounds = true
         iv.translatesAutoresizingMaskIntoConstraints = false
         return iv

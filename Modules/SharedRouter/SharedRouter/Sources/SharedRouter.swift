@@ -37,6 +37,10 @@ public final class SharedRouter: SharedRouterProtocol {
         }
     }
 
+    public func pop(animated: Bool) {
+        navigationController?.popViewController(animated: animated)
+    }
+
     private func buildViewController(for route: Route) -> UIViewController? {
         switch route {
         case .home:

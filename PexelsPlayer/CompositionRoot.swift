@@ -32,7 +32,7 @@ final class CompositionRoot {
             lazyRouter: lazyRouter
         )
 
-        let videoFeedCoordinator = VideoFeedCoordinator(lazyRouter: lazyRouter)
+        let videoFeedCoordinator = VideoFeedCoordinator()
         let savedItemsCoordinator = SavedItemsCoordinator()
 
         let homeVC = homeCoordinator.build()
@@ -61,6 +61,7 @@ final class CompositionRoot {
             savedItemsBuilder: savedItemsCoordinator
         )
         lazyRouter.router = sharedRouter
+        videoFeedCoordinator.setNavigationController(homeNav)
         self.router = sharedRouter
 
         return tabBarController

@@ -16,16 +16,13 @@ final class HomeViewController: BaseViewController {
         cv.delegate = self
         cv.prefetchDataSource = self
         cv.register(VideoThumbnailCell.self, forCellWithReuseIdentifier: VideoThumbnailCell.reuseIdentifier)
+        cv.register(LoadingFooterView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: LoadingFooterView.reuseIdentifier)
         cv.translatesAutoresizingMaskIntoConstraints = false
         return cv
     }()
 
-    private lazy var refreshControl: UIRefreshControl = {
-        let rc = UIRefreshControl()
-        rc.tintColor = AppTheme.secondary
-        rc.addTarget(self, action: #selector(didPullToRefresh), for: .valueChanged)
-        return rc
-    }()
+    private var isLoadingMore = false
+
 
     init(viewModel: HomeViewModel) {
         self.viewModel = viewModel
@@ -43,21 +40,18 @@ final class HomeViewController: BaseViewController {
         viewModel.action.send(.viewDidLoad)
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.navigationBar.prefersLargeTitles = true
+    }
+
     private func setupUI() {
         view.backgroundColor = AppTheme.background
         title = "Pexels"
-
-        navigationController?.navigationBar.prefersLargeTitles = true
-        navigationController?.navigationBar.largeTitleTextAttributes = [
-            .foregroundColor: AppTheme.primaryText
-        ]
-        navigationController?.navigationBar.titleTextAttributes = [
-            .foregroundColor: AppTheme.primaryText
-        ]
+        navigationItem.largeTitleDisplayMode = .always
 
         view.addSubview(collectionView)
         collectionView.pinToEdges(of: view)
-        collectionView.refreshControl = refreshControl
     }
 
     private func createLayout() -> UICollectionViewCompositionalLayout {
@@ -76,6 +70,11 @@ final class HomeViewController: BaseViewController {
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item, item, item])
 
         let section = NSCollectionLayoutSection(group: group)
+
+        let footerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(50))
+        let footer = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: footerSize, elementKind: UICollectionView.elementKindSectionFooter, alignment: .bottom)
+        section.boundarySupplementaryItems = [footer]
+
         return UICollectionViewCompositionalLayout(section: section)
     }
 
@@ -96,12 +95,11 @@ final class HomeViewController: BaseViewController {
             }
         case .loaded(let newVideos):
             showLoading(false)
-            refreshControl.endRefreshing()
+            isLoadingMore = false
             videos = newVideos
             collectionView.reloadData()
         case .error(let message):
             showLoading(false)
-            refreshControl.endRefreshing()
             showErrorAlert(message: message)
         }
     }
@@ -115,9 +113,6 @@ final class HomeViewController: BaseViewController {
         present(alert, animated: true)
     }
 
-    @objc private func didPullToRefresh() {
-        viewModel.action.send(.pullToRefresh)
-    }
 }
 
 extension HomeViewController: UICollectionViewDataSource {
@@ -146,8 +141,52 @@ extension HomeViewController: UICollectionViewDelegate {
 extension HomeViewController: UICollectionViewDataSourcePrefetching {
     func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {
         let maxIndex = indexPaths.map(\.item).max() ?? 0
-        if maxIndex >= videos.count - 6 {
+        if maxIndex >= videos.count - 3 {
+            isLoadingMore = true
+            collectionView.reloadData()
             viewModel.action.send(.loadMore)
         }
+    }
+}
+
+extension HomeViewController {
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        guard kind == UICollectionView.elementKindSectionFooter,
+              let footer = collectionView.dequeueReusableSupplementaryView(
+                ofKind: kind,
+                withReuseIdentifier: LoadingFooterView.reuseIdentifier,
+                for: indexPath
+              ) as? LoadingFooterView else {
+            return UICollectionReusableView()
+        }
+        footer.setLoading(isLoadingMore && !videos.isEmpty)
+        return footer
+    }
+}
+
+private final class LoadingFooterView: UICollectionReusableView {
+    static let reuseIdentifier = "LoadingFooterView"
+
+    private let spinner: UIActivityIndicatorView = {
+        let s = UIActivityIndicatorView(style: .medium)
+        s.color = AppTheme.secondary
+        s.translatesAutoresizingMaskIntoConstraints = false
+        s.hidesWhenStopped = true
+        return s
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        addSubview(spinner)
+        spinner.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
+        spinner.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func setLoading(_ loading: Bool) {
+        if loading { spinner.startAnimating() } else { spinner.stopAnimating() }
     }
 }

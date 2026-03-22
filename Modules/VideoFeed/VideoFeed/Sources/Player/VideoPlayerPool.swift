@@ -16,7 +16,7 @@ final class VideoPlayerPool {
             let player = AVPlayer()
             player.automaticallyWaitsToMinimizeStalling = true
             let layer = AVPlayerLayer(player: player)
-            layer.videoGravity = .resizeAspectFill
+            layer.videoGravity = .resizeAspect
             return PlayerEntry(player: player, layer: layer, assignedIndex: nil)
         }
     }

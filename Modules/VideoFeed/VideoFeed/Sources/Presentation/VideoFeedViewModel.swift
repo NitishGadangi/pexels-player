@@ -43,6 +43,7 @@ final class VideoFeedViewModel {
     let playbackProgress = CurrentValueSubject<Double, Never>(0.0)
     let showQualitySheet = PassthroughSubject<([VideoFile], VideoQuality), Never>()
     let autoAdvance = PassthroughSubject<Int, Never>()
+    let prepareVideo = PassthroughSubject<(Video, Int), Never>()
 
     weak var navigationDelegate: VideoFeedNavigationDelegate?
 
@@ -134,9 +135,6 @@ final class VideoFeedViewModel {
 
         case .selectQuality(let quality):
             playerManager.qualityService.currentQuality = quality
-            let videos = paginationManager.videos
-            guard currentIndex < videos.count else { return }
-            state.send(.buffering(index: currentIndex))
 
         case .backTapped:
             playerManager.pauseAll()
@@ -153,7 +151,8 @@ final class VideoFeedViewModel {
     private func playCurrentVideo() {
         let videos = paginationManager.videos
         guard currentIndex < videos.count else { return }
-        state.send(.buffering(index: currentIndex))
+        let video = videos[currentIndex]
+        prepareVideo.send((video, currentIndex))
     }
 
     private func checkPagination() {

@@ -134,12 +134,12 @@ final class VideoFeedCell: UICollectionViewCell {
             pauseIcon.heightAnchor.constraint(equalToConstant: 50),
 
             usernameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            usernameLabel.bottomAnchor.constraint(equalTo: progressBar.topAnchor, constant: -16),
+            usernameLabel.bottomAnchor.constraint(equalTo: progressBar.topAnchor, constant: -20),
             usernameLabel.trailingAnchor.constraint(lessThanOrEqualTo: buttonStack.leadingAnchor, constant: -16),
 
             progressBar.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             progressBar.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            progressBar.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            progressBar.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -34),
             progressBar.heightAnchor.constraint(equalToConstant: 2),
 
             buttonStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),

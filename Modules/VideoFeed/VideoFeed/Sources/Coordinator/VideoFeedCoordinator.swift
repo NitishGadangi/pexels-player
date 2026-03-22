@@ -4,11 +4,9 @@ import SharedModelsInterface
 import SharedRouterInterface
 
 public final class VideoFeedCoordinator: VideoFeedBuildable {
-    private let lazyRouter: LazyRouter
+    private weak var navigationController: UINavigationController?
 
-    public init(lazyRouter: LazyRouter) {
-        self.lazyRouter = lazyRouter
-    }
+    public init() {}
 
     public func build(paginationManager: VideoPaginationManagerProtocol, startIndex: Int) -> UIViewController {
         let playerManager = VideoPlayerManager()
@@ -18,12 +16,17 @@ public final class VideoFeedCoordinator: VideoFeedBuildable {
             startIndex: startIndex
         )
         viewModel.navigationDelegate = self
-        return VideoFeedViewController(viewModel: viewModel)
+        let vc = VideoFeedViewController(viewModel: viewModel)
+        return vc
+    }
+
+    public func setNavigationController(_ nav: UINavigationController?) {
+        self.navigationController = nav
     }
 }
 
 extension VideoFeedCoordinator: VideoFeedNavigationDelegate {
     func videoFeedDidRequestBack() {
-        lazyRouter.navigate(to: .home, style: .push)
+        navigationController?.popViewController(animated: true)
     }
 }

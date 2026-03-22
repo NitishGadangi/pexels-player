@@ -29,7 +29,10 @@ public final class URLSessionNetworkService: NetworkServiceProtocol {
         }
 
         if configuration?.logRequests == true {
-            print("[Network] \(urlRequest.httpMethod ?? "GET") \(urlRequest.url?.absoluteString ?? "")")
+            print("[Network] ➡️ \(urlRequest.httpMethod ?? "GET") \(urlRequest.url?.absoluteString ?? "")")
+            if let headers = urlRequest.allHTTPHeaderFields, !headers.isEmpty {
+                print("[Network] 📋 Headers: \(headers)")
+            }
         }
 
         let logResponses = configuration?.logResponses == true

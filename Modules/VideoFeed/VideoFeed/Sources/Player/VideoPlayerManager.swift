@@ -32,15 +32,21 @@ final class VideoPlayerManager {
     func prepareAndPlay(video: Video, at index: Int, in containerView: UIView) {
         guard let file = qualityService.bestFile(for: video),
               let url = URL(string: file.link) else {
+            print("[VideoPlayer] ❌ No playable file for video id=\(video.id)")
             playbackState.send(.error("No playable video file found", index: index))
             return
         }
+
+        print("[VideoPlayer] ▶️ Preparing video id=\(video.id) at index=\(index)")
+        print("[VideoPlayer] 📎 Quality=\(file.quality) \(file.width ?? 0)x\(file.height ?? 0) fps=\(file.fps ?? 0)")
+        print("[VideoPlayer] 🔗 URL=\(file.link)")
 
         cleanupCurrentObservers()
         currentIndex = index
 
         let (player, layer) = pool.player(for: index, currentVisibleIndex: index)
         layer.removeFromSuperlayer()
+        layer.videoGravity = .resizeAspect
         layer.frame = containerView.bounds
         containerView.layer.insertSublayer(layer, at: 0)
 
@@ -55,10 +61,12 @@ final class VideoPlayerManager {
             DispatchQueue.main.async {
                 switch item.status {
                 case .readyToPlay:
+                    print("[VideoPlayer] ✅ Ready to play at index=\(index)")
                     player.play()
                     self.playbackState.send(.playing(index: index))
                 case .failed:
                     let message = item.error?.localizedDescription ?? "Playback failed"
+                    print("[VideoPlayer] ❌ Failed at index=\(index): \(message)")
                     self.playbackState.send(.error(message, index: index))
                 default:
                     break
@@ -112,7 +120,7 @@ final class VideoPlayerManager {
 
     private func setupTimeObserver(for player: AVPlayer, item: AVPlayerItem, index: Int) {
         removeTimeObserver(from: player)
-        let interval = CMTime(seconds: 0.5, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        let interval = CMTime(seconds: 1.0, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
         timeObserver = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
             guard let duration = player.currentItem?.duration,
                   duration.seconds.isFinite, duration.seconds > 0 else { return }

@@ -141,6 +141,17 @@ final class VideoFeedViewController: UIViewController {
             }
             .store(in: &cancellables)
 
+        viewModel.prepareVideo
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] video, index in
+                guard let self else { return }
+                let cell = self.cellForVideo(at: index)
+                cell?.showBuffering(true)
+                guard let container = cell?.playerContainerView else { return }
+                self.viewModel.playerManager.prepareAndPlay(video: video, at: index, in: container)
+            }
+            .store(in: &cancellables)
+
         viewModel.showQualitySheet
             .receive(on: DispatchQueue.main)
             .sink { [weak self] files, currentQuality in
@@ -156,13 +167,6 @@ final class VideoFeedViewController: UIViewController {
         case .buffering(let index):
             let cell = cellForVideo(at: index)
             cell?.showBuffering(true)
-            if index < videos.count {
-                viewModel.playerManager.prepareAndPlay(
-                    video: videos[index],
-                    at: index,
-                    in: cell?.playerContainerView ?? UIView()
-                )
-            }
         case .playing(let index):
             let cell = cellForVideo(at: index)
             cell?.showBuffering(false)

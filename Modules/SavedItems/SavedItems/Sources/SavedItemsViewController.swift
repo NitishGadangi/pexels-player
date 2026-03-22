@@ -27,6 +27,14 @@ final class SavedItemsViewController: BaseViewController {
         view.backgroundColor = AppTheme.background
         title = "Saved"
 
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationController?.navigationBar.largeTitleTextAttributes = [
+            .foregroundColor: AppTheme.primaryText
+        ]
+        navigationController?.navigationBar.titleTextAttributes = [
+            .foregroundColor: AppTheme.primaryText
+        ]
+
         view.addSubview(titleLabel)
         view.addSubview(subtitleLabel)
 

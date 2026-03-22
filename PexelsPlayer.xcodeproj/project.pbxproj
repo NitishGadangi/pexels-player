@@ -22,8 +22,19 @@
 		5EF2088A2F7006F700471FED /* VideoFeedInterface in Frameworks */ = {isa = PBXBuildFile; productRef = 5EF208892F7006F700471FED /* VideoFeedInterface */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		5EF209A72F700C0F00471FED /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5EF2083D2F6FE75D00471FED /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5EF208442F6FE75D00471FED;
+			remoteInfo = PexelsPlayer;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		5EF208452F6FE75D00471FED /* PexelsPlayer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PexelsPlayer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5EF209A32F700C0F00471FED /* PexelsPlayerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PexelsPlayerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -50,6 +61,11 @@
 			path = Modules;
 			sourceTree = "<group>";
 		};
+		5EF209A42F700C0F00471FED /* PexelsPlayerTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PexelsPlayerTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +89,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5EF209A02F700C0F00471FED /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -81,6 +104,7 @@
 			children = (
 				5EF2096E2F70076B00471FED /* Modules */,
 				5EF208472F6FE75D00471FED /* PexelsPlayer */,
+				5EF209A42F700C0F00471FED /* PexelsPlayerTests */,
 				5EF208462F6FE75D00471FED /* Products */,
 			);
 			sourceTree = "<group>";
@@ -89,6 +113,7 @@
 			isa = PBXGroup;
 			children = (
 				5EF208452F6FE75D00471FED /* PexelsPlayer.app */,
+				5EF209A32F700C0F00471FED /* PexelsPlayerTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -132,6 +157,29 @@
 			productReference = 5EF208452F6FE75D00471FED /* PexelsPlayer.app */;
 			productType = "com.apple.product-type.application";
 		};
+		5EF209A22F700C0F00471FED /* PexelsPlayerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5EF209A92F700C0F00471FED /* Build configuration list for PBXNativeTarget "PexelsPlayerTests" */;
+			buildPhases = (
+				5EF2099F2F700C0F00471FED /* Sources */,
+				5EF209A02F700C0F00471FED /* Frameworks */,
+				5EF209A12F700C0F00471FED /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5EF209A82F700C0F00471FED /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				5EF209A42F700C0F00471FED /* PexelsPlayerTests */,
+			);
+			name = PexelsPlayerTests;
+			packageProductDependencies = (
+			);
+			productName = PexelsPlayerTests;
+			productReference = 5EF209A32F700C0F00471FED /* PexelsPlayerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -144,6 +192,10 @@
 				TargetAttributes = {
 					5EF208442F6FE75D00471FED = {
 						CreatedOnToolsVersion = 26.3;
+					};
+					5EF209A22F700C0F00471FED = {
+						CreatedOnToolsVersion = 26.3;
+						TestTargetID = 5EF208442F6FE75D00471FED;
 					};
 				};
 			};
@@ -165,12 +217,20 @@
 			projectRoot = "";
 			targets = (
 				5EF208442F6FE75D00471FED /* PexelsPlayer */,
+				5EF209A22F700C0F00471FED /* PexelsPlayerTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		5EF208432F6FE75D00471FED /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5EF209A12F700C0F00471FED /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -187,7 +247,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5EF2099F2F700C0F00471FED /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5EF209A82F700C0F00471FED /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5EF208442F6FE75D00471FED /* PexelsPlayer */;
+			targetProxy = 5EF209A72F700C0F00471FED /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		5EF208592F6FE75E00471FED /* Debug */ = {
@@ -375,6 +450,48 @@
 			};
 			name = Release;
 		};
+		5EF209AA2F700C0F00471FED /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KUALD79QSS;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nitish.PexelsPlayerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PexelsPlayer.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PexelsPlayer";
+			};
+			name = Debug;
+		};
+		5EF209AB2F700C0F00471FED /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KUALD79QSS;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nitish.PexelsPlayerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PexelsPlayer.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PexelsPlayer";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -392,6 +509,15 @@
 			buildConfigurations = (
 				5EF208592F6FE75E00471FED /* Debug */,
 				5EF2085A2F6FE75E00471FED /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5EF209A92F700C0F00471FED /* Build configuration list for PBXNativeTarget "PexelsPlayerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5EF209AA2F700C0F00471FED /* Debug */,
+				5EF209AB2F700C0F00471FED /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

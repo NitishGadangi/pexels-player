@@ -74,6 +74,35 @@ UseCase → Repository → NetworkService
 
 > TBD: Dependency Graph
 
+## Key Design Decisions
+
+### Single VideoPaginationManager
+
+A single `VideoPaginationManager` instance is shared between Home and VideoFeed. It is created by `HomeCoordinator` and passed by reference to `VideoFeedCoordinator` when the user taps a video. This means both screens read from and paginate against the same data — no duplication, no re-fetching. When the user scrolls deep into the VideoFeed and triggers the next page, those new videos are also available when they return to the Home grid.
+
+The protocol (`VideoPaginationManagerProtocol`) lives in `SharedModelsInterface` so both feature interfaces can reference it without depending on each other.
+
+### VideoPlayerPool (3 Instances)
+
+AVPlayer is resource-heavy — creating one per cell would exhaust memory quickly. `VideoPlayerPool` maintains exactly **3 AVPlayer + AVPlayerLayer pairs** and reuses them as the user scrolls:
+
+1. If a player is already assigned to the requested video index, return it.
+2. If a free (unassigned) player exists, assign it.
+3. Otherwise, reclaim the player **furthest from the currently visible index** — pause it, nil out its item, remove its layer, and reassign.
+
+On cell reuse, the `AVPlayerLayer` is stripped from the cell's container to prevent stale video frames from appearing on recycled cells.
+
+### VideoPlayerManager
+
+`VideoPlayerManager` is the orchestration layer that sits between the pool and the ViewModel. It handles:
+
+- **Quality selection** — uses `QualityPreferenceService` to pick the best `VideoFile` for the user's preferred quality (HD by default), with fallback to adjacent tiers.
+- **Playback lifecycle** — creates `AVPlayerItem`, assigns it to a pooled player, observes item status (buffering → ready → playing/failed), and reports state changes via a Combine subject.
+- **Progress tracking** — periodic time observer updates a progress subject that drives the UI progress bar.
+- **Cleanup** — invalidates KVO observations and removes time observers before preparing a new video, preventing stale callbacks from old items.
+
+The ViewModel never touches AVPlayer directly — it sends play/pause/mute commands to `VideoPlayerManager` and reacts to its state publisher.
+
 ## Future Scope
 
 - **DiffableDataSource** for Home grid — smoother updates without full `reloadData()`

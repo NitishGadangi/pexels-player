@@ -180,9 +180,10 @@ final class VideoFeedCell: UICollectionViewCell {
         if show {
             loadingIndicator.startAnimating()
             previewImageView.isHidden = false
+            previewImageView.alpha = 1
         } else {
             loadingIndicator.stopAnimating()
-            previewImageView.isHidden = true
+            previewImageView.fadeOut()
         }
     }
 

@@ -2,6 +2,7 @@ import AVFoundation
 import Combine
 import UIKit
 import SharedModelsInterface
+import LoggingLib
 
 final class VideoPlayerManager {
     enum PlaybackState {
@@ -17,6 +18,7 @@ final class VideoPlayerManager {
     let progress = CurrentValueSubject<Double, Never>(0.0)
 
     private let pool: VideoPlayerPool
+    private let logger: LoggerProtocol
     let qualityService: QualityPreferenceService
     private(set) var isMuted = true
     private var currentIndex: Int?
@@ -25,22 +27,26 @@ final class VideoPlayerManager {
     private var statusObservation: NSKeyValueObservation?
     private var cancellables = Set<AnyCancellable>()
 
-    init(pool: VideoPlayerPool = VideoPlayerPool(), qualityService: QualityPreferenceService = QualityPreferenceService()) {
+    init(
+        pool: VideoPlayerPool = VideoPlayerPool(),
+        qualityService: QualityPreferenceService = QualityPreferenceService(),
+        logger: LoggerProtocol = ConsoleLogger(minimumLevel: .debug)
+    ) {
         self.pool = pool
         self.qualityService = qualityService
+        self.logger = logger
     }
 
     func prepareAndPlay(video: Video, at index: Int, in containerView: UIView) {
         guard let file = qualityService.bestFile(for: video),
               let url = URL(string: file.link) else {
-            print("[VideoPlayer] ❌ No playable file for video id=\(video.id)")
+            logger.error("No playable file for video id=\(video.id)")
             playbackState.send(.error("No playable video file found", index: index))
             return
         }
 
-        print("[VideoPlayer] ▶️ Preparing video id=\(video.id) at index=\(index)")
-        print("[VideoPlayer] 📎 Quality=\(file.quality) \(file.width ?? 0)x\(file.height ?? 0) fps=\(file.fps ?? 0)")
-        print("[VideoPlayer] 🔗 URL=\(file.link)")
+        logger.debug("Preparing video id=\(video.id) at index=\(index) quality=\(file.quality) \(file.width ?? 0)x\(file.height ?? 0) fps=\(file.fps ?? 0)")
+        logger.debug("URL=\(file.link)")
 
         cleanupCurrentObservers()
         currentIndex = index
@@ -64,12 +70,12 @@ final class VideoPlayerManager {
             DispatchQueue.main.async {
                 switch item.status {
                 case .readyToPlay:
-                    print("[VideoPlayer] ✅ Ready to play at index=\(index)")
+                    self.logger.info("Ready to play at index=\(index)")
                     player.play()
                     self.playbackState.send(.playing(index: index))
                 case .failed:
                     let message = item.error?.localizedDescription ?? "Playback failed"
-                    print("[VideoPlayer] ❌ Failed at index=\(index): \(message)")
+                    self.logger.error("Failed at index=\(index): \(message)")
                     self.playbackState.send(.error(message, index: index))
                 default:
                     break

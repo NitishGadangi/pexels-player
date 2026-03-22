@@ -6,7 +6,10 @@ The app fetches popular videos from the [Pexels API](https://www.pexels.com/api/
 
 ## Video Walthrough
 
-> TBD: Video recording
+https://github.com/user-attachments/assets/6db92cde-6e51-4ff4-9900-a9e20f07894d
+
+**Watch on youtube: https://www.youtube.com/shorts/cX498il-N0o**
+
 
 ## Architecture
 
@@ -36,7 +39,8 @@ UseCase → Repository → NetworkService
 - **Coordinator** implements the interface's `Buildable` protocol, creates all dependencies, and acts as the ViewModel's `NavigationDelegate`. It never touches UIKit views directly — it delegates navigation to the `SharedRouter`.
 - **ViewController** is purely presentation — it renders state and forwards user input as actions. No business logic, no data storage.
 
-> TBD: Feature level modules overview
+<img src="https://github.com/user-attachments/assets/a49b9f0d-f726-45e1-b48e-c20f10c2bc81" alt="02-feature-module-structure" width="800" />
+
 
 ### App Composition
 
@@ -72,7 +76,8 @@ UseCase → Repository → NetworkService
 
 ## Dependency Graph
 
-> TBD: Dependency Graph
+<img src="https://github.com/user-attachments/assets/bfe32e52-f7d0-4971-bd57-b1778e9e35d3" alt="pexels-player-dependency-graph" style="max-width: 100%; height: auto;" />
+
 
 ## Key Design Decisions
 
